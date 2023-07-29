@@ -1,40 +1,51 @@
 # Ubuntu Server jammy
 # ---
 # Packer Template to create an Ubuntu Server (jammy) on Proxmox
+packer {
+  required_plugins {
+    proxmox-iso = {
+      version = ">= 1.1.3"
+      source  = "github.com/hashicorp/proxmox"
+    }
+  }
+}
 
 # Variable Definitions
 variable "proxmox_api_url" {
     type = string
+    default = "https://10.10.1.91:8006/api2/json"
 }
 
 variable "proxmox_api_token_id" {
     type = string
+    default = "root@pam!automation"
 }
 
 variable "proxmox_api_token_secret" {
     type = string
     sensitive = true
+    default = "46da10e0-3bed-4fbd-bb8f-87d97ae18c16"
 }
 
 # Resource Definiation for the VM Template
-source "proxmox" "ubuntu-server-jammy" {
+source "proxmox-iso" "ubuntu-server-jammy" {
  
     # Proxmox Connection Settings
     proxmox_url = "${var.proxmox_api_url}"
     username = "${var.proxmox_api_token_id}"
     token = "${var.proxmox_api_token_secret}"
     # (Optional) Skip TLS Verification
-    # insecure_skip_tls_verify = true
+    insecure_skip_tls_verify = true
     
     # VM General Settings
-    node = "your-proxmox-node"
-    vm_id = "100"
-    vm_name = "ubuntu-server-jammy"
-    template_description = "Ubuntu Server jammy Image"
+    node = "proxmox"
+    vm_id = "102"
+    vm_name = "ubuntu-template-22.04"
+    template_description = "Ubuntu Template"
 
     # VM OS Settings
     # (Option 1) Local ISO File
-    # iso_file = "local:iso/ubuntu-22.04-live-server-amd64.iso"
+    iso_file = "local:iso/ubuntu-22.04.2-live-server-amd64.iso"
     # - or -
     # (Option 2) Download ISO
     # iso_url = "https://releases.ubuntu.com/22.04/ubuntu-22.04-live-server-amd64.iso"
@@ -92,10 +103,10 @@ source "proxmox" "ubuntu-server-jammy" {
     # http_port_min = 8802
     # http_port_max = 8802
 
-    ssh_username = "your-user-name"
+    ssh_username = "marayas"
 
     # (Option 1) Add your Password here
-    # ssh_password = "your-password"
+    ssh_password = "Nenis.2093"
     # - or -
     # (Option 2) Add your Private SSH KEY file here
     # ssh_private_key_file = "~/.ssh/id_rsa"
@@ -108,7 +119,7 @@ source "proxmox" "ubuntu-server-jammy" {
 build {
 
     name = "ubuntu-server-jammy"
-    sources = ["source.proxmox.ubuntu-server-jammy"]
+    sources = ["source.proxmox-iso.ubuntu-server-jammy"]
 
     # Provisioning the VM Template for Cloud-Init Integration in Proxmox #1
     provisioner "shell" {
